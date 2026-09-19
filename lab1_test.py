@@ -1,3 +1,8 @@
+"""Нужно протестировать класс Employees - набор векторов. Есть класс с функциями из ГА; из них нужно собрать сам ГА.
+Сделать несколько матриц, каждую из них запустить в цикле с ограничением на количество итераций и условием выхода. 
+Поочерёдно применить функции mutate, select"""
+
+
 from lab1 import Employees
 
 matrix = [
@@ -6,11 +11,6 @@ matrix = [
     [7, 8, 9]
 ]
 
-p = Employees(6, 1000, 3, 0.8, matrix)
+p = Employees(6, 3, 0.8, matrix)
 
-flag = False
-total_
-for i in range(1000):
-    p.mutate()
-    p.select()
-    
+print(p.population)

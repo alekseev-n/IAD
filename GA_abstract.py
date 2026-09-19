@@ -25,12 +25,11 @@ class Vector:
 class Population:
     """Абстрактный класс для популяции.
     @functions: form_first_population, crossover, mutate, select"""
-    def __init__(self, population_size, max_iterations, n, mutation_probability) -> None:
-        """Params: population_size, max_iterations, n, mutation_probability\n
+    def __init__(self, population_size, n, mutation_probability) -> None:
+        """Params: population_size, n, mutation_probability\n
         n - размер популяции"""
 
         self.population_size = population_size
-        self.max_iterations = max_iterations
         self.population = []
         self.n = n
         self.mutation_probability = mutation_probability
