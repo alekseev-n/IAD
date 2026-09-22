@@ -11,8 +11,8 @@ class Employee(Vector):
     def __init__(self, vector, length, matrix):
         self.vector = vector
         self.length = length
-        self.fit = self.fitness(vector) 
         self.matrix = matrix
+        self.fit = self.fitness(vector) # Поменял местами последние 2 строчки, так как фитнесс использует матрицу
 
     def mutate(self):
         i = random.randrange(self.length)
@@ -33,18 +33,25 @@ class Employees(Population):
     matrix - матрица стоимостей наёма i-го сотрудника на j-е место \n
     t - количество участников одного раунда турнирного отбора"""
 
-    def __init__(self, population_size, n, mutation_probability, matrix, t=2):
-        super().__init__(population_size, n, mutation_probability)
+    def __init__(self, n, mutation_probability, matrix, t=2):
         self.matrix = matrix
+        super().__init__(n, mutation_probability)
+        # self.matrix = matrix Поменял местами, так как суперкласс вызывает form_first_population, который вызывает self.matrix
         self.t = t
         
 
     def form_first_population(self):
         self.population = []
-        numbers = range(self.n)
+        chromosome_len = len(self.matrix)
+        numbers = range(chromosome_len)
         while len(self.population) < self.n:
-            self.population.append(random.sample(numbers, k=self.n))
-    
+            #self.population.append(random.sample(numbers, k=self.n))
+            # Список чисел нужно преобразовать к классу employee
+
+            random_vector = random.sample(numbers, k=chromosome_len)
+            new_employee = Employee(random_vector, chromosome_len, self.matrix)
+            self.population.append(new_employee)
+
     def select(self):
         """@brief: Турнирный отбор\n
         @params: t - количество участников, из которых выбирается 1 лучший"""
@@ -62,11 +69,21 @@ class Employees(Population):
     def mutate(self):
         """Функция вместо кроссовера"""
 
+        """for vector in self.population:
+            num = random.random()
+            if num < self.mutation_probability:
+                new = vector.mutate()
+                self.population.append(new) 
+                
+         старый код раздувал популяцию, поэтому исправил, чтобы заменял особи"""
+        mutants = []
         for vector in self.population:
             num = random.random()
             if num < self.mutation_probability:
                 new = vector.mutate()
-                self.population.append(new)
+                mutants.append(new)  # Добавляем во временный список
+
+        self.population.extend(mutants)
 
     def crossover(self):
         pass
@@ -76,4 +93,11 @@ class Employees(Population):
 
         self.fit = sum(v.fit for v in self.population) / self.n
         return self.fit
+
+    def get_best(self):
+        """Вспомогательный метод для поиска лучшей особи в популяции"""
+        best = max(self.population, key=lambda v: v.fit)
+
+        cost = sum(self.matrix[i][best.vector[i]] for i in range(len(self.matrix)))
+        return best.vector, cost
 
