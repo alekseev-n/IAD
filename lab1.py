@@ -11,8 +11,8 @@ class Employee(Vector):
     def __init__(self, vector, length, matrix):
         self.vector = vector
         self.length = length
-        self.fit = self.fitness(vector) 
         self.matrix = matrix
+        self.fit = self.fitness(vector) # Поменял местами последние 2 строчки, так как фитнесс использует матрицу
 
     def mutate(self):
         i = random.randrange(self.length)
@@ -34,8 +34,9 @@ class Employees(Population):
     t - количество участников одного раунда турнирного отбора"""
 
     def __init__(self, population_size, n, mutation_probability, matrix, t=2):
-        super().__init__(population_size, n, mutation_probability)
         self.matrix = matrix
+        super().__init__(population_size, n, mutation_probability)
+        # self.matrix = matrix Поменял местами, так как суперкласс вызывает form_first_population, который вызывает self.matrix
         self.t = t
         
 
@@ -43,8 +44,13 @@ class Employees(Population):
         self.population = []
         numbers = range(self.n)
         while len(self.population) < self.n:
-            self.population.append(random.sample(numbers, k=self.n))
-    
+            #self.population.append(random.sample(numbers, k=self.n))
+            # Список чисел нужно преобразовать к классу employee
+
+            random_vector = random.sample(numbers, k=self.n)
+            new_employee = Employee(random_vector, self.n, self.matrix)
+            self.population.append(new_employee)
+
     def select(self):
         """@brief: Турнирный отбор\n
         @params: t - количество участников, из которых выбирается 1 лучший"""
@@ -62,11 +68,18 @@ class Employees(Population):
     def mutate(self):
         """Функция вместо кроссовера"""
 
-        for vector in self.population:
+        """for vector in self.population:
             num = random.random()
             if num < self.mutation_probability:
                 new = vector.mutate()
-                self.population.append(new)
+                self.population.append(new) 
+                
+         старый код раздувал популяцию, поэтому исправил, чтобы заменял особи"""
+        for i, vector in enumerate(self.population):  # Добавили enumerate
+            num = random.random()
+            if num < self.mutation_probability:
+                new = vector.mutate()
+                self.population[i] = new
 
     def crossover(self):
         pass
