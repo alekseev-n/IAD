@@ -73,9 +73,7 @@ class Employees(Population):
             num = random.random()
             if num < self.mutation_probability:
                 new = vector.mutate()
-                self.population.append(new) 
-                
-         старый код раздувал популяцию, поэтому исправил, чтобы заменял особи"""
+                self.population.append(new) """
         mutants = []
         for vector in self.population:
             num = random.random()
@@ -91,7 +89,7 @@ class Employees(Population):
     def fitness(self):
         """Функция приспособленности популяции. Записывает приспособленность в переменную класса self.fit и возвращает её"""
 
-        self.fit = sum(v.fit for v in self.population) / self.n
+        self.fit = sum(v.fit for v in self.population) / len(self.population)
         return self.fit
 
     def get_best(self):

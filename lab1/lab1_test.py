@@ -45,8 +45,8 @@ for test_name, matrix in matrices.items():
 
     # === ГЛАВНЫЙ ЦИКЛ ЭВОЛЮЦИИ ===
     while iteration < max_iterations:
-        ga.select()  # Отбор лучших
         ga.mutate()  # Мутация
+        ga.select()  # Отбор лучших
 
         current_pop_fitness = ga.fitness()  # Считаем среднюю приспособленность популяции
         fitness_history.append(current_pop_fitness)
