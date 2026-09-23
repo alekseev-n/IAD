@@ -15,7 +15,7 @@ class Employee(Vector):
         self.fit = self.fitness(vector) # Поменял местами последние 2 строчки, так как фитнесс использует матрицу
 
     def mutate(self):
-        i = random.randrange(self.length)
+        i = random.randrange(1, self.length)
         return Employee(self.vector[i:] + self.vector[:i], self.length, self.matrix)
 
     def fitness(self, vector): # pyright: ignore[reportIncompatibleMethodOverride]
