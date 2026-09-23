@@ -1,5 +1,7 @@
 from lab1 import Employees
 from itertools import permutations
+
+
 matrices = {
     "mat1": [[10, 19, 8, 15],
                [13, 11, 17, 10],
@@ -25,7 +27,7 @@ matrices = {
 
 POPULATION_SIZE = 50
 MUTATION_PROBABILITY = 0.7  # Высокая, так как кроссовера нет
-TOURNAMENT_SIZE = 3
+TOURNAMENT_SIZE = 2
 
 for test_name, matrix in matrices.items():
     print(f"\n{'=' * 10} {test_name} {'=' * 10}")
@@ -53,7 +55,7 @@ for test_name, matrix in matrices.items():
         if len(fitness_history) >= plateau_limit:
             last_3 = fitness_history[-plateau_limit:]
             # Если разница между макс и мин за последние 3 шага ничтожна
-            if max(last_3) - min(last_3) < 1e-6:
+            if max(last_3) - min(last_3) < 0.04 and iteration > 2:
                 print(f"-> Остановка по условию плато на {iteration}-й итерации.")
                 break
 
