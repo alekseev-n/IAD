@@ -2,6 +2,8 @@
 # В презентации код и его тестирование
 # прийти в 16.10
 
+import math
+
 from GA_abstract import Vector, Population
 import random
 import math
@@ -109,7 +111,8 @@ class Employees( Population ):
         """
 
         top_number = math.ceil(self.n * k / 100)
-        return sorted( self.population, key=lambda v: v.fit )[:top_number + 1]
+        return sorted(self.population, key=lambda v: v.fit, reverse=True)[:top_number]
+        #добавил реверс и ограничение до топ намбер
 
     def extend_population(self, addition: list[Employee]) -> None:
         """BRIEF: функция, расширяющая популяцию выбранными векторами
