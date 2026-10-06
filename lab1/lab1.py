@@ -4,9 +4,10 @@
 
 from GA_abstract import Vector, Population
 import random
+import math
 from itertools import combinations
 
-class Employee(Vector):
+class Employee( Vector ):
 
     def __init__(self, vector, length, matrix):
         self.vector = vector
@@ -24,7 +25,7 @@ class Employee(Vector):
 
     
 
-class Employees(Population):
+class Employees( Population ):
 
     """Класс для решения задачи о расстановке сотрудников с помощью ГА
     @params: population_size \n
@@ -99,3 +100,18 @@ class Employees(Population):
         cost = sum(self.matrix[i][best.vector[i]] for i in range(len(self.matrix)))
         return best.vector, cost
 
+    def get_top(self, k) -> list[Employee]:
+        """
+        BRIEF: функция, отбирающая k% лучших особей
+        PARAMS:\n
+        k - процент лучших особей от популяции, число от 1 до 100\n
+        RETURNS: list[Employee] - список лучших объектов
+        """
+
+        top_number = math.ceil(self.n * k / 100)
+        return sorted( self.population, key=lambda v: v.fit )[:top_number + 1]
+
+    def extend_population(self, addition: list[Employee]) -> None:
+        """BRIEF: функция, расширяющая популяцию выбранными векторами
+        \nPARAMS: addition: list[Employee] - список с добавляемыми векторами"""
+        self.population.extend(addition)

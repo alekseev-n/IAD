@@ -28,6 +28,8 @@ matrices = {
 POPULATION_SIZE = 50
 MUTATION_PROBABILITY = 0.7  # Высокая, так как кроссовера нет
 TOURNAMENT_SIZE = 2
+MAX_ITERATIONS = 1000
+PLATEAU_LIMIT = 3
 
 for test_name, matrix in matrices.items():
     print(f"\n{'=' * 10} {test_name} {'=' * 10}")
@@ -37,14 +39,13 @@ for test_name, matrix in matrices.items():
     ga = Employees(n=POPULATION_SIZE, mutation_probability=MUTATION_PROBABILITY, matrix=matrix, t=TOURNAMENT_SIZE)
 
     iteration = 0
-    max_iterations = 1000
 
     # Для отслеживания плато (3 последние итерации)
     fitness_history = []
-    plateau_limit = 3
+    
 
     # === ГЛАВНЫЙ ЦИКЛ ЭВОЛЮЦИИ ===
-    while iteration < max_iterations:
+    while iteration < MAX_ITERATIONS:
         ga.mutate()  # Мутация
         ga.select()  # Отбор лучших
 
@@ -52,8 +53,8 @@ for test_name, matrix in matrices.items():
         fitness_history.append(current_pop_fitness)
 
         # Проверяем условие остановки: если последние 3 значения практически не изменились
-        if len(fitness_history) >= plateau_limit:
-            last_3 = fitness_history[-plateau_limit:]
+        if len(fitness_history) >= PLATEAU_LIMIT:
+            last_3 = fitness_history[-PLATEAU_LIMIT:]
             # Если разница между макс и мин за последние 3 шага ничтожна
             if max(last_3) - min(last_3) < 0.04 and iteration > 2:
                 print(f"-> Остановка по условию плато на {iteration}-й итерации.")
@@ -61,7 +62,7 @@ for test_name, matrix in matrices.items():
 
         iteration += 1
     else:
-        print(f"-> Достигнут лимит в {max_iterations} итераций.")
+        print(f"-> Достигнут лимит в {MAX_ITERATIONS} итераций.")
 
     # Получаем лучший результат от ГА
     ga_vector, ga_cost = ga.get_best()
