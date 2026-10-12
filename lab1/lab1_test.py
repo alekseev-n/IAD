@@ -4,6 +4,13 @@ from itertools import permutations
 
 
 matrices = {
+    "ideal_matrice": [
+        [1, 100, 100, 100, 100],
+        [100, 1, 100, 100, 100],
+        [100, 100, 1, 100, 100],
+        [100, 100, 100, 1, 100],
+        [100, 100, 100, 100, 1]
+    ],
     "mat1": [[10, 19, 8, 15],
                [13, 11, 17, 10],
                [12, 14, 16, 18],
@@ -31,61 +38,69 @@ POPULATION_SIZE = 50  # Размер каждой популяции
 MUTATION_PROBABILITY = 0.7
 TOURNAMENT_SIZE = 2
 MAX_ITERATIONS = 1000
-PLATEAU_LIMIT = 3
+PLATEAU_LIMIT = 8
 
-MIGRATION_INTERVAL = 10  # Каждые 10 поколений происходит обмен
+MIGRATION_INTERVAL = 5  # Каждые 10 поколений происходит обмен
 MIGRATION_PERCENT = 10  # Передаем 10% лучших особей (5 штук при размере 50)
 
-for test_name, matrix in matrices.items():
-    print(f"\n{'=' * 10} {test_name} (Мультипопуляционный ГА) {'=' * 10}")
-
+def run_ga_with_migraions(
+        population_size,
+        mutation_probability,
+        tournament_size,
+        max_iterations,
+        plateau_limit,
+        migration_interval,
+        migration_percent,
+        num_islands,
+        matrix
+):
     # 1. Инициализируем список независимых островов-популяций
     islands = [
-        Employees(n=POPULATION_SIZE, mutation_probability=MUTATION_PROBABILITY, matrix=matrix, t=TOURNAMENT_SIZE)
-        for _ in range(NUM_ISLANDS)
+        Employees(n=population_size, mutation_probability=mutation_probability, matrix=matrix, t=tournament_size)
+        for _ in range(num_islands)
     ]
 
     iteration = 0
     fitness_history = []
 
     # === ГЛАВНЫЙ ЦИКЛ ЭВОЛЮЦИИ ===
-    while iteration < MAX_ITERATIONS:
+    while iteration < max_iterations:
 
         # Шаг А. Независимая эволюция на каждом острове
         for ga in islands:
             ga.mutate()  # Мутация
             ga.select()  # Отбор лучших
 
-        # Шаг Б. Миграция особей между островами (каждые MIGRATION_INTERVAL поколений)
-        if iteration > 0 and iteration % MIGRATION_INTERVAL == 0:
+        # Шаг Б. Миграция особей между островами (каждые migration_interval поколений)
+        if iteration > 0 and iteration % migration_interval == 0:
             # Собираем мигрантов (лучших особей) со всех островов в памяти
-            migrants_from = [ga.get_top(MIGRATION_PERCENT) for ga in islands]
+            migrants_from = [ga.get_top(migration_percent) for ga in islands]
 
             # Передаем по схеме "Кольцо"
-            for i in range(NUM_ISLANDS):
-                next_island_idx = (i + 1) % NUM_ISLANDS
+            for i in range(num_islands):
+                next_island_idx = (i + 1) % num_islands
                 # Остров (i) отдает своих мигрантов острову (next_island_idx)
                 islands[next_island_idx].extend_population(migrants_from[i])
 
             # Сразу после миграции принудительно делаем отбор (select),
-            # чтобы ужать расширившиеся популяции обратно до POPULATION_SIZE
+            # чтобы ужать расширившиеся популяции обратно до population_size
             for ga in islands:
                 ga.select()
 
         # Шаг В. Считаем среднюю общую приспособленность по всем островам для проверки плато
-        total_islands_fitness = sum(ga.fitness() for ga in islands) / NUM_ISLANDS
+        total_islands_fitness = sum(ga.fitness() for ga in islands) / num_islands
         fitness_history.append(total_islands_fitness)
 
         # Проверяем условие остановки по плато
-        if len(fitness_history) >= PLATEAU_LIMIT:
-            last_3 = fitness_history[-PLATEAU_LIMIT:]
-            if max(last_3) - min(last_3) < 0.04 and iteration > 2:
+        if len(fitness_history) >= plateau_limit:
+            last_3 = fitness_history[-plateau_limit:]
+            if max(last_3) - min(last_3) < 0.04:
                 print(f"-> Остановка по условию плато на {iteration}-й итерации.")
                 break
 
         iteration += 1
     else:
-        print(f"-> Достигнут лимит в {MAX_ITERATIONS} итераций.")
+        print(f"-> Достигнут лимит в {max_iterations} итераций.")
 
     # 2. Ищем наилучшее решение среди абсолютно всех островов
     best_vectors = []
@@ -121,5 +136,41 @@ for test_name, matrix in matrices.items():
 
     if min_ga_cost == best_exact_cost:
         print("Мультипопуляционный алгоритм нашел точное решение.")
+        return (True, iteration)
     else:
         print(f"Найдено субоптимальное решение. Разница с идеалом: {min_ga_cost - best_exact_cost}")
+        return (False, iteration)
+
+
+if __name__ == "__main__":
+    # for test_name, matrix in matrices.items():
+    #     print(f"\n{'=' * 10} {test_name} (Мультипопуляционный ГА) {'=' * 10}")
+    #     run_ga_with_migraions(POPULATION_SIZE,
+    #                           MUTATION_PROBABILITY,
+    #                           TOURNAMENT_SIZE,
+    #                           MAX_ITERATIONS,
+    #                           PLATEAU_LIMIT,
+    #                           MIGRATION_INTERVAL,
+    #                           MIGRATION_PERCENT,
+    #                           NUM_ISLANDS,
+    #                           matrix)
+
+    count = 0
+    iterations = 0
+    for i in range(100):
+        result = run_ga_with_migraions(POPULATION_SIZE,
+                                    MUTATION_PROBABILITY,
+                                    TOURNAMENT_SIZE,
+                                    MAX_ITERATIONS,
+                                    PLATEAU_LIMIT,
+                                    MIGRATION_INTERVAL,
+                                    MIGRATION_PERCENT,
+                                    NUM_ISLANDS,
+                                    matrices["ideal_matrice"])
+        count += int(result[0])
+        if (result[0]):
+            iterations += result[1]
+
+    print(f'На "идеальных" данных алгоритм отработал правильно в {count}% случаев.\n',
+          f'В среднем это заняло {iterations // count} итераций')
+        
