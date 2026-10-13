@@ -24,20 +24,29 @@ matrices = {
              [11, 16, 71, 2, 13, 5, 8, 12],
              [4, 20, 17, 7, 10, 15, 1, 14],
              [6, 12, 4, 64, 53, 3, 34, 43]]
+    ,
+    "mat4": [[1, 300, 140, 800, 100, 190, 500, 120],
+             [110, 1, 200, 150, 700, 180, 130, 500],
+             [800, 160, 1, 110, 100, 140, 190, 200],
+             [700, 130, 600, 1, 380, 120, 150, 900],
+             [200, 400, 100, 510, 1, 600, 180, 300],
+             [110, 160, 710, 200, 130, 1, 800, 120],
+             [400, 200, 170, 700, 100, 150, 1, 140],
+             [600, 120, 400, 640, 530, 300, 340, 1]]
 }
 
-NUM_ISLANDS = 3  # Количество независимых популяций (островов)
+NUM_ISLANDS = 100  # Количество независимых популяций
 POPULATION_SIZE = 50  # Размер каждой популяции
 MUTATION_PROBABILITY = 0.7
 TOURNAMENT_SIZE = 2
 MAX_ITERATIONS = 1000
-PLATEAU_LIMIT = 3
+PLATEAU_LIMIT = 2
 
 MIGRATION_INTERVAL = 10  # Каждые 10 поколений происходит обмен
 MIGRATION_PERCENT = 10  # Передаем 10% лучших особей (5 штук при размере 50)
 
 for test_name, matrix in matrices.items():
-    print(f"\n{'=' * 10} {test_name} (Мультипопуляционный ГА) {'=' * 10}")
+    print(f"\n{'=' * 10} {test_name} {'=' * 10}")
 
     # 1. Инициализируем список независимых островов-популяций
     islands = [
@@ -79,7 +88,7 @@ for test_name, matrix in matrices.items():
         # Проверяем условие остановки по плато
         if len(fitness_history) >= PLATEAU_LIMIT:
             last_3 = fitness_history[-PLATEAU_LIMIT:]
-            if max(last_3) - min(last_3) < 0.04 and iteration > 2:
+            if max(last_3) - min(last_3) < 0.00001 and iteration > 2:
                 print(f"-> Остановка по условию плато на {iteration}-й итерации.")
                 break
 
@@ -118,8 +127,7 @@ for test_name, matrix in matrices.items():
     print(f"Результат точного метода (Полный перебор):")
     print(f"  - Распределение задач (индексы): {list(best_exact_vector)}")
     print(f"  - Итоговая стоимость: {best_exact_cost}")
-
-    if min_ga_cost == best_exact_cost:
-        print("Мультипопуляционный алгоритм нашел точное решение.")
-    else:
-        print(f"Найдено субоптимальное решение. Разница с идеалом: {min_ga_cost - best_exact_cost}")
+    print()
+    print("Используемая матрица:")
+    for row in matrix:
+        print("".join(f"{cost:<5}" for cost in row))
