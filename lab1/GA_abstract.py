@@ -1,49 +1,30 @@
-"""Абстрактные классы для генетического алгоритма"""
-
+"""Shared interfaces for permutation-based genetic algorithms."""
 
 class Vector:
-    """Абстрактный класс особи-вектора генетического алгоритма.
-    @methods: __init__ - инициализация вектора\n
-    mutate() - мутация
-    cross(vector2) - кроссовер - скрещивание со вторым вектором. Либо изменяется сам вектор, 
-    либо возвращается новый (оптимальный вариант)
-    fitness() - функция приспособленности"""
-
-    def __init__(self):
-        pass
-
-    def mutate(self) -> Vector:
-        pass
+    def mutate(self) -> "Vector":
+        raise NotImplementedError
 
     def cross(self, vector2):
-        pass
+        raise NotImplementedError
 
     def fitness(self, vector):
-        pass
-
+        raise NotImplementedError
 
 class Population:
-    """Абстрактный класс для популяции.
-    @functions: form_first_population, crossover, mutate, select"""
-    def __init__(self, n, mutation_probability) -> None:
-        """Params: population_size, n, mutation_probability\n
-        n - размер популяции"""
-
+    def __init__(self, n, mutation_probability):
         self.population = []
         self.n = n
         self.mutation_probability = mutation_probability
         self.form_first_population()
 
     def form_first_population(self):
-        pass
+        raise NotImplementedError
 
     def select(self):
-        pass
+        raise NotImplementedError
 
     def mutate(self):
-        for vector in self.population:
-            vector.mutate()
+        raise NotImplementedError
 
     def crossover(self):
-        pass
-
+        raise NotImplementedError
