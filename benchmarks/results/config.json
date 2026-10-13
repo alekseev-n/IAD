@@ -1,0 +1,40 @@
+{
+  "dimensions": [
+    4,
+    5,
+    8,
+    16,
+    32,
+    64
+  ],
+  "runs_per_dimension_and_mode": 30,
+  "seed_base": 20261014,
+  "population_size": 50,
+  "modes": [
+    [
+      "single_50",
+      1,
+      50
+    ],
+    [
+      "islands_3x50",
+      3,
+      50
+    ],
+    [
+      "single_budget_matched",
+      1,
+      150
+    ]
+  ],
+  "default_ga_config": {
+    "num_islands": 3,
+    "population_size": 50,
+    "mutation_probability": 0.7,
+    "tournament_size": 2,
+    "max_iterations": 1000,
+    "plateau_limit": 3,
+    "migration_interval": 10,
+    "migration_percent": 10
+  }
+}
