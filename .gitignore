@@ -216,3 +216,37 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Local development, IDE, OS and agent-generated artifacts
+.venv/
+.idea/
+*.iml
+.vscode/
+.fleet/
+.DS_Store
+._*
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+*.tmp
+*.temp
+*.bak
+*.orig
+.history/
+.env.*
+!.env.example
+!.env.sample
+
+# Personal AI agent state and temporary implementation notes
+.codex/
+.opencode/
+.superpowers/
+.agents/
+.claude/
+.cursor/
+.aider*
+.continue/
+docs/superpowers/plans/
+docs/superpowers/specs/
