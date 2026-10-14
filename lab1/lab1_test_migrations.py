@@ -40,7 +40,7 @@ TOURNAMENT_SIZE = 2
 MAX_ITERATIONS = 1000
 PLATEAU_LIMIT = 3
 
-MIGRATION_INTERVAL = 5  # Каждые 10 поколений происходит обмен
+MIGRATION_INTERVAL = 10  # Каждые 10 поколений происходит обмен
 MIGRATION_PERCENT = 10  # Передаем 10% лучших особей (5 штук при размере 50)
 
 def run_ga_with_migraions(
@@ -72,7 +72,7 @@ matrix - матрица, для которой требуется найти р�
         for _ in range(num_islands)
     ]
 
-    iteration = 0
+    iteration = 1
     fitness_history = []
 
     # === ГЛАВНЫЙ ЦИКЛ ЭВОЛЮЦИИ ===
