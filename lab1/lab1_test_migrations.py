@@ -1,6 +1,7 @@
 import math
 from lab1 import Employees
 from itertools import permutations
+from scipy.optimize import linear_sum_assignment
 
 
 matrices = {
@@ -39,6 +40,7 @@ MUTATION_PROBABILITY = 0.7
 TOURNAMENT_SIZE = 2
 MAX_ITERATIONS = 1000
 PLATEAU_LIMIT = 3
+PLATEAU_DIFF = 2e-4
 
 MIGRATION_INTERVAL = 10  # Каждые 10 поколений происходит обмен
 MIGRATION_PERCENT = 10  # Передаем 10% лучших особей (5 штук при размере 50)
@@ -49,22 +51,28 @@ def run_ga_with_migraions(
         tournament_size,
         max_iterations,
         plateau_limit,
+        plateau_diff,
         migration_interval,
         migration_percent,
         num_islands,
         matrix
 ):
     """Функция ГА с миграциями.\n
-Параметры:
+**Параметры**:
 population_size - размер популяции \n
 mutation_probability - вероятность мутации \n
 tournament_size - количество участников турнира\n
 max_iterations - максимальное количество итераций\n
 plateau_limit - длина участка, при достижении постоянства на котором, мы останавливаем алгоритм\n
+plateau_diff - максимальное колебание целевой функции, при которой участок считается постоянным\n
 migration_interval - периодичность миграции\n
 migration_percent - процент прибавления размера популяции острова после миграции\n
 num_islands - количество островов\n
-matrix - матрица, для которой требуется найти решение"""
+matrix - матрица, для которой требуется найти решение\n\n
+**Возвращает**: кортеж (found_best, iteration, distance)\n
+found_best - boolean - нашел ли алгоритм оптимальное решение\n
+iteration - integer - сколько итераций потребовалось для нахождения решения \n
+distance - integer - разность между нашим и оптимальным значением."""
     
     # 1. Инициализируем список независимых островов-популяций
     islands = [
@@ -74,6 +82,7 @@ matrix - матрица, для которой требуется найти р�
 
     iteration = 1
     fitness_history = []
+    fitness_delta = []
 
     # === ГЛАВНЫЙ ЦИКЛ ЭВОЛЮЦИИ ===
     while iteration < max_iterations:
@@ -102,11 +111,15 @@ matrix - матрица, для которой требуется найти р�
         # Шаг В. Считаем среднюю общую приспособленность по всем островам для проверки плато
         total_islands_fitness = sum(ga.fitness() for ga in islands) / num_islands
         fitness_history.append(total_islands_fitness)
+        if len(fitness_history) > 1: fitness_delta.append(abs(fitness_history[-1] - fitness_history[-2]))
 
-        # Проверяем условие остановки по плато
-        if len(fitness_history) >= plateau_limit:
-            last_3 = fitness_history[-plateau_limit:]
-            if max(last_3) - min(last_3) < 0.04:
+        # Проверяем условие остановки по плато. 
+        # Теперь проверяем по модулю разности между соседними значениями fitness
+        # plateau_limit - считаем, что это минимальное количество разниц между соседними значениями
+        # т.е. в истории должно быть не меньше plateau_limit + 1 значений
+        if len(fitness_delta) >= plateau_limit:
+            diffs = fitness_delta[- plateau_limit:]
+            if max(diffs) < plateau_diff:
                 print(f"-> Остановка по условию плато на {iteration}-й итерации.")
                 break
 
@@ -131,12 +144,10 @@ matrix - матрица, для которой требуется найти р�
     best_exact_cost = float('inf')
     best_exact_vector = None
 
-    for p in permutations(range(n_size)):
-        current_cost = sum(matrix[i][p[i]] for i in range(n_size))
-        if current_cost < best_exact_cost:
-            best_exact_cost = current_cost
-            best_exact_vector = p
-
+    _, best_exact_vector = linear_sum_assignment(matrix)
+    best_exact_vector = [int(i) for i in best_exact_vector]
+    best_exact_cost = sum(matrix[i][best_exact_vector[i]] for i in range(len(matrix)))
+    
     # Печатаем результаты сравнения
     print(f"Результат Генетического Алгоритма (Лучший остров):")
     print(f"  - Распределение задач (индексы): {ga_vector}")
@@ -148,40 +159,42 @@ matrix - матрица, для которой требуется найти р�
 
     if min_ga_cost == best_exact_cost:
         print("Мультипопуляционный алгоритм нашел точное решение.")
-        return (True, iteration)
+        return (True, iteration, 0)
     else:
         print(f"Найдено субоптимальное решение. Разница с идеалом: {min_ga_cost - best_exact_cost}")
-        return (False, iteration)
+        return (False, iteration, min_ga_cost - best_exact_cost)
 
 
 if __name__ == "__main__":
-    # for test_name, matrix in matrices.items():
-    #     print(f"\n{'=' * 10} {test_name} (Мультипопуляционный ГА) {'=' * 10}")
-    #     run_ga_with_migraions(POPULATION_SIZE,
-    #                           MUTATION_PROBABILITY,
-    #                           TOURNAMENT_SIZE,
-    #                           MAX_ITERATIONS,
-    #                           PLATEAU_LIMIT,
-    #                           MIGRATION_INTERVAL,
-    #                           MIGRATION_PERCENT,
-    #                           NUM_ISLANDS,
-    #                           matrix)
+    for test_name, matrix in matrices.items():
+        print(f"\n{'=' * 10} {test_name} (Мультипопуляционный ГА) {'=' * 10}")
+        run_ga_with_migraions(POPULATION_SIZE,
+                              MUTATION_PROBABILITY,
+                              TOURNAMENT_SIZE,
+                              MAX_ITERATIONS,
+                              PLATEAU_LIMIT,
+                              PLATEAU_DIFF,
+                              MIGRATION_INTERVAL,
+                              MIGRATION_PERCENT,
+                              NUM_ISLANDS,
+                              matrix)
 
-    count = 0
-    iterations = 0
-    for i in range(100):
-        result = run_ga_with_migraions(POPULATION_SIZE,
-                                    MUTATION_PROBABILITY,
-                                    TOURNAMENT_SIZE,
-                                    MAX_ITERATIONS,
-                                    PLATEAU_LIMIT,
-                                    MIGRATION_INTERVAL,
-                                    MIGRATION_PERCENT,
-                                    NUM_ISLANDS,
-                                    matrices["ideal_matrice"])
-        count += int(result[0])
-        iterations += result[1]
+    # count = 0
+    # iterations = 0
+    # for i in range(100):
+    #     result = run_ga_with_migraions(POPULATION_SIZE,
+    #                                 MUTATION_PROBABILITY,
+    #                                 TOURNAMENT_SIZE,
+    #                                 MAX_ITERATIONS,
+    #                                 PLATEAU_LIMIT,
+    #                                 PLATEAU_DIFF,
+    #                                 MIGRATION_INTERVAL,
+    #                                 MIGRATION_PERCENT,
+    #                                 NUM_ISLANDS,
+    #                                 matrices["ideal_matrice"])
+    #     count += int(result[0])
+    #     iterations += result[1]
 
-    print(f'На "идеальных" данных алгоритм отработал правильно в {count}% случаев.\n',
-          f'В среднем это заняло {iterations // 100} итераций')
+    # print(f'На "идеальных" данных алгоритм отработал правильно в {count}% случаев.\n',
+    #       f'В среднем это заняло {iterations // 100} итераций')
         
