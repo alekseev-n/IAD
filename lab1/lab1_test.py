@@ -45,7 +45,7 @@ PLATEAU_DIFF = 2e-4
 MIGRATION_INTERVAL = 10  # Каждые 10 поколений происходит обмен
 MIGRATION_PERCENT = 10  # Передаем 10% лучших особей (5 штук при размере 50)
 
-def run_ga_with_migraions(
+def run_ga(
         population_size,
         mutation_probability,
         tournament_size,
@@ -136,7 +136,7 @@ distance - integer - разность между нашим и оптималь�
 if __name__ == "__main__":
     for test_name, matrix in matrices.items():
         print(f"\n{'=' * 10} {test_name} (Мультипопуляционный ГА) {'=' * 10}")
-        run_ga_with_migraions(POPULATION_SIZE,
+        run_ga(POPULATION_SIZE,
                               MUTATION_PROBABILITY,
                               TOURNAMENT_SIZE,
                               MAX_ITERATIONS,
