@@ -88,7 +88,8 @@ distance - integer - разность между нашим и оптималь�
         # Считаем среднюю приспособленность
         current_pop_fitness = evolution.fitness()  # Считаем среднюю приспособленность популяции
         fitness_history.append(current_pop_fitness)
-        if len(fitness_history) > 1: fitness_delta.append(abs(fitness_history[-1] - fitness_history[-2]))
+        if len(fitness_history) > 1: 
+            fitness_delta.append(abs(fitness_history[-1] - fitness_history[-2]))
 
         # Проверяем условие остановки по плато. 
         # Теперь проверяем по модулю разности между соседними значениями fitness
@@ -97,12 +98,12 @@ distance - integer - разность между нашим и оптималь�
         if len(fitness_delta) >= plateau_limit:
             diffs = fitness_delta[- plateau_limit:]
             if max(diffs) < plateau_diff:
-                print(f"-> Остановка по условию плато на {iteration}-й итерации.")
+                # print(f"-> Остановка по условию плато на {iteration}-й итерации.")
                 break
 
         iteration += 1
-    else:
-        print(f"-> Достигнут лимит в {max_iterations} итераций.")
+    # else:
+        # print(f"-> Достигнут лимит в {max_iterations} итераций.")
 
     # 2. Ищем наилучшее решение
     best_vector, best_cost = evolution.get_best()
@@ -117,25 +118,25 @@ distance - integer - разность между нашим и оптималь�
     best_exact_cost = sum(matrix[i][best_exact_vector[i]] for i in range(len(matrix)))
     
     # Печатаем результаты сравнения
-    print(f"Результат Генетического Алгоритма (Лучший остров):")
-    print(f"  - Распределение задач (индексы): {best_vector}")
-    print(f"  - Итоговая стоимость: {best_cost}")
+    # print(f"Результат Генетического Алгоритма (Лучший остров):")
+    # print(f"  - Распределение задач (индексы): {best_vector}")
+    # print(f"  - Итоговая стоимость: {best_cost}")
 
-    print(f"Результат точного метода (Полный перебор):")
-    print(f"  - Распределение задач (индексы): {list(best_exact_vector)}")
-    print(f"  - Итоговая стоимость: {best_exact_cost}")
+    # print(f"Результат точного метода (Полный перебор):")
+    # print(f"  - Распределение задач (индексы): {list(best_exact_vector)}")
+    # print(f"  - Итоговая стоимость: {best_exact_cost}")
 
     if best_cost == best_exact_cost:
-        print("Мультипопуляционный алгоритм нашел точное решение.")
+        # print("Мультипопуляционный алгоритм нашел точное решение.")
         return (True, iteration, 0)
     else:
-        print(f"Найдено субоптимальное решение. Разница с идеалом: {best_cost - best_exact_cost}")
-        return (False, iteration, best_cost - best_exact_cost)
+        # print(f"Найдено субоптимальное решение. Разница с идеалом: {best_cost - best_exact_cost}")
+        return (False, iteration, (best_cost - best_exact_cost) / best_exact_cost)
 
 
 if __name__ == "__main__":
     for test_name, matrix in matrices.items():
-        print(f"\n{'=' * 10} {test_name} (Мультипопуляционный ГА) {'=' * 10}")
+        print(f"\n{'=' * 10} {test_name} (Генетический алгоритм) {'=' * 10}")
         run_ga(POPULATION_SIZE,
                               MUTATION_PROBABILITY,
                               TOURNAMENT_SIZE,

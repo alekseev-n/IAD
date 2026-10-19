@@ -120,12 +120,12 @@ distance - integer - разность между нашим и оптималь�
         if len(fitness_delta) >= plateau_limit:
             diffs = fitness_delta[- plateau_limit:]
             if max(diffs) < plateau_diff:
-                print(f"-> Остановка по условию плато на {iteration}-й итерации.")
+                # print(f"-> Остановка по условию плато на {iteration}-й итерации.")
                 break
 
         iteration += 1
-    else:
-        print(f"-> Достигнут лимит в {max_iterations} итераций.")
+    # else:
+        # print(f"-> Достигнут лимит в {max_iterations} итераций.")
 
     # 2. Ищем наилучшее решение среди абсолютно всех островов
     best_vectors = []
@@ -149,25 +149,25 @@ distance - integer - разность между нашим и оптималь�
     best_exact_cost = sum(matrix[i][best_exact_vector[i]] for i in range(len(matrix)))
     
     # Печатаем результаты сравнения
-    print(f"Результат Генетического Алгоритма (Лучший остров):")
-    print(f"  - Распределение задач (индексы): {ga_vector}")
-    print(f"  - Итоговая стоимость: {min_ga_cost}")
+    # print(f"Результат Генетического Алгоритма (Лучший остров):")
+    # print(f"  - Распределение задач (индексы): {ga_vector}")
+    # print(f"  - Итоговая стоимость: {min_ga_cost}")
 
-    print(f"Результат точного метода (Полный перебор):")
-    print(f"  - Распределение задач (индексы): {list(best_exact_vector)}")
-    print(f"  - Итоговая стоимость: {best_exact_cost}")
+    # print(f"Результат точного метода (Полный перебор):")
+    # print(f"  - Распределение задач (индексы): {list(best_exact_vector)}")
+    # print(f"  - Итоговая стоимость: {best_exact_cost}")
 
     if min_ga_cost == best_exact_cost:
-        print("Мультипопуляционный алгоритм нашел точное решение.")
+        # print("Мультипопуляционный алгоритм нашел точное решение.")
         return (True, iteration, 0)
     else:
-        print(f"Найдено субоптимальное решение. Разница с идеалом: {min_ga_cost - best_exact_cost}")
-        return (False, iteration, min_ga_cost - best_exact_cost)
+        # print(f"Найдено субоптимальное решение. Разница с идеалом: {min_ga_cost - best_exact_cost}")
+        return (False, iteration, (min_ga_cost - best_exact_cost) / best_exact_cost)
 
 
 if __name__ == "__main__":
     for test_name, matrix in matrices.items():
-        print(f"\n{'=' * 10} {test_name} (Мультипопуляционный ГА) {'=' * 10}")
+        # print(f"\n{'=' * 10} {test_name} (Мультипопуляционный ГА) {'=' * 10}")
         run_ga_with_migrations(POPULATION_SIZE,
                               MUTATION_PROBABILITY,
                               TOURNAMENT_SIZE,
