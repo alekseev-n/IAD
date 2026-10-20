@@ -35,12 +35,14 @@ matrices = {
 }
 
 NUM_evolution = 3  # Количество независимых популяций (островов)
-POPULATION_SIZE = 50  # Размер каждой популяции
+POPULATION_SIZE = 250  # Размер каждой популяции
 MUTATION_PROBABILITY = 0.7
+MUTATION_PERCENT = 40 # процент от длины элемента вектора, который переворачивается в ходе мутации
 TOURNAMENT_SIZE = 2
-MAX_ITERATIONS = 1000
-PLATEAU_LIMIT = 3
-PLATEAU_DIFF = 2e-4
+MAX_ITERATIONS = 100
+PLATEAU_LIMIT = 5
+PLATEAU_DIFF = 1e-16
+ELITIST_PERCENT = 0.2
 
 MIGRATION_INTERVAL = 10  # Каждые 10 поколений происходит обмен
 MIGRATION_PERCENT = 10  # Передаем 10% лучших особей (5 штук при размере 50)
@@ -48,13 +50,15 @@ MIGRATION_PERCENT = 10  # Передаем 10% лучших особей (5 шт
 def run_ga(
         population_size,
         mutation_probability,
+        mutation_percent,
         tournament_size,
         max_iterations,
         plateau_limit,
         plateau_diff,
+        elitist_percent,
         matrix
 ):
-    """Функция ГА с миграциями.\n
+    """Функция ГА.\n
 **Параметры**:
 population_size - размер популяции \n
 mutation_probability - вероятность мутации \n
@@ -69,8 +73,12 @@ found_best - boolean - нашел ли алгоритм оптимальное �
 iteration - integer - сколько итераций потребовалось для нахождения решения \n
 distance - integer - разность между нашим и оптимальным значением."""
     
-    # 1. Инициализируем список независимых островов-популяций
-    evolution = Employees(n=population_size, mutation_probability=mutation_probability, matrix=matrix, t=tournament_size)
+    evolution = Employees(n=population_size, 
+                          mutation_probability=mutation_probability, 
+                          matrix=matrix, 
+                          mutation_percent=mutation_percent, 
+                          elitist_percent = elitist_percent,
+                          t=tournament_size)
 
     iteration = 1
     fitness_history = []
@@ -99,6 +107,7 @@ distance - integer - разность между нашим и оптималь�
             diffs = fitness_delta[- plateau_limit:]
             if max(diffs) < plateau_diff:
                 # print(f"-> Остановка по условию плато на {iteration}-й итерации.")
+                # print(*[i.vector for i in evolution.population], sep='\n')
                 break
 
         iteration += 1
@@ -122,9 +131,11 @@ distance - integer - разность между нашим и оптималь�
     # print(f"  - Распределение задач (индексы): {best_vector}")
     # print(f"  - Итоговая стоимость: {best_cost}")
 
-    # print(f"Результат точного метода (Полный перебор):")
+    # print(f"Результат точного метода:")
     # print(f"  - Распределение задач (индексы): {list(best_exact_vector)}")
     # print(f"  - Итоговая стоимость: {best_exact_cost}")
+
+    # print(len(evolution.population), sep="\n")
 
     if best_cost == best_exact_cost:
         # print("Мультипопуляционный алгоритм нашел точное решение.")
@@ -139,10 +150,12 @@ if __name__ == "__main__":
         print(f"\n{'=' * 10} {test_name} (Генетический алгоритм) {'=' * 10}")
         run_ga(POPULATION_SIZE,
                               MUTATION_PROBABILITY,
+                              MUTATION_PERCENT,
                               TOURNAMENT_SIZE,
                               MAX_ITERATIONS,
                               PLATEAU_LIMIT,
                               PLATEAU_DIFF,
+                              ELITIST_PERCENT,
                               matrix)
 
     # count = 0
