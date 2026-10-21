@@ -19,19 +19,25 @@ class Employee( Vector ):
         self.mutation_percent = mutation_percent
 
     def mutate(self):
-        """Функция мутации. Вырезает кусок из вектора, переворачивает его и вставляет обратно."""
-        result = copy.deepcopy(self.vector)
-        replace = []
-        start = random.randint(1, self.length)
-        addition = 1 if self.length == 1 else 2
-        stop = start + int(self.length * random.randrange(0, self.mutation_percent) / 100)
-        stop = stop if stop - start > 1 else start + addition
-        for i in range(start, stop + 1):
-            replace.append(self.vector[i % self.length])
+        """Return a new chromosome with a randomly reversed contiguous segment.
 
-        for i in range(start, stop + 1):
-            result[i % self.length] = replace[stop - i]
+        mutation_percent is the maximum segment length as a percentage of the
+        chromosome length. A useful mutation needs at least two positions.
+        """
+        if not 0 < self.mutation_percent <= 100:
+            raise ValueError("mutation_percent must be in (0, 100]")
+        if self.length < 2:
+            return Employee(self.vector, self.length, self.matrix, self.mutation_percent)
 
+        max_segment = min(self.length, max(2, math.ceil(
+            self.length * self.mutation_percent / 100
+        )))
+        segment_length = random.randint(2, max_segment)
+        start = random.randint(0, self.length - segment_length)
+        result = self.vector.copy()
+        result[start:start + segment_length] = reversed(
+            result[start:start + segment_length]
+        )
         return Employee(result, self.length, self.matrix, self.mutation_percent)
 
     def fitness(self, vector): # pyright: ignore[reportIncompatibleMethodOverride]
