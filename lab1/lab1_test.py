@@ -2,6 +2,7 @@ import math
 from lab1 import Employees
 from itertools import permutations
 from scipy.optimize import linear_sum_assignment
+from termination import plateau_reached
 
 
 matrices = {
@@ -80,9 +81,8 @@ distance - integer - разность между нашим и оптималь�
                           elitist_percent = elitist_percent,
                           t=tournament_size)
 
-    iteration = 1
+    iteration = 0
     fitness_history = []
-    fitness_delta = []
 
     # === ГЛАВНЫЙ ЦИКЛ ЭВОЛЮЦИИ ===
     while iteration < max_iterations:
@@ -91,26 +91,14 @@ distance - integer - разность между нашим и оптималь�
 
         evolution.mutate()  # Мутация
         evolution.select()  # Отбор лучших
-
+        iteration += 1
 
         # Считаем среднюю приспособленность
         current_pop_fitness = evolution.fitness()  # Считаем среднюю приспособленность популяции
         fitness_history.append(current_pop_fitness)
-        if len(fitness_history) > 1: 
-            fitness_delta.append(abs(fitness_history[-1] - fitness_history[-2]))
+        if plateau_reached(fitness_history, plateau_limit, plateau_diff):
+            break
 
-        # Проверяем условие остановки по плато. 
-        # Теперь проверяем по модулю разности между соседними значениями fitness
-        # plateau_limit - считаем, что это минимальное количество разниц между соседними значениями
-        # т.е. в истории должно быть не меньше plateau_limit + 1 значений
-        if len(fitness_delta) >= plateau_limit:
-            diffs = fitness_delta[- plateau_limit:]
-            if max(diffs) < plateau_diff:
-                # print(f"-> Остановка по условию плато на {iteration}-й итерации.")
-                # print(*[i.vector for i in evolution.population], sep='\n')
-                break
-
-        iteration += 1
     # else:
         # print(f"-> Достигнут лимит в {max_iterations} итераций.")
 

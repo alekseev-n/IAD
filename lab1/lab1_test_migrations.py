@@ -2,6 +2,7 @@ import math
 from lab1 import Employees
 from itertools import permutations
 from scipy.optimize import linear_sum_assignment
+from termination import plateau_reached
 
 
 matrices = {
@@ -90,9 +91,8 @@ distance - integer - разность между нашим и оптималь�
         for _ in range(num_islands)
     ]
 
-    iteration = 1
+    iteration = 0
     fitness_history = []
-    fitness_delta = []
 
     # === ГЛАВНЫЙ ЦИКЛ ЭВОЛЮЦИИ ===
     while iteration < max_iterations:
@@ -101,6 +101,7 @@ distance - integer - разность между нашим и оптималь�
         for ga in islands:
             ga.mutate()  # Мутация
             ga.select()  # Отбор лучших
+        iteration += 1
 
         # Шаг Б. Миграция особей между островами (каждые migration_interval поколений)
         if iteration > 0 and iteration % migration_interval == 0:
@@ -121,19 +122,9 @@ distance - integer - разность между нашим и оптималь�
         # Шаг В. Считаем среднюю общую приспособленность по всем островам для проверки плато
         total_islands_fitness = sum(ga.fitness() for ga in islands) / num_islands
         fitness_history.append(total_islands_fitness)
-        if len(fitness_history) > 1: fitness_delta.append(abs(fitness_history[-1] - fitness_history[-2]))
+        if plateau_reached(fitness_history, plateau_limit, plateau_diff):
+            break
 
-        # Проверяем условие остановки по плато. 
-        # Теперь проверяем по модулю разности между соседними значениями fitness
-        # plateau_limit - считаем, что это минимальное количество разниц между соседними значениями
-        # т.е. в истории должно быть не меньше plateau_limit + 1 значений
-        if len(fitness_delta) >= plateau_limit:
-            diffs = fitness_delta[- plateau_limit:]
-            if max(diffs) < plateau_diff:
-                # print(f"-> Остановка по условию плато на {iteration}-й итерации.")
-                break
-
-        iteration += 1
     # else:
         # print(f"-> Достигнут лимит в {max_iterations} итераций.")
 
