@@ -12,7 +12,7 @@ class Vector:
     def __init__(self):
         pass
 
-    def mutate(self) -> Vector:
+    def mutate(self) -> "Vector":
         pass
 
     def cross(self, vector2):

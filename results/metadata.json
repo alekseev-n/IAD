@@ -1,0 +1,77 @@
+{
+  "seed": 20261021,
+  "matrix_count": 6,
+  "repeats": 2,
+  "classes": {
+    "small": [
+      3,
+      5
+    ],
+    "medium": [
+      8,
+      12
+    ],
+    "large": [
+      16,
+      24
+    ]
+  },
+  "baseline": {
+    "population_size": 100,
+    "mutation_probability": 0.7,
+    "mutation_percent": 45,
+    "tournament_size": 2,
+    "max_iterations": 100,
+    "plateau_limit": 5,
+    "plateau_diff": 0.0001,
+    "elitist_percent": 0.2
+  },
+  "sweeps": {
+    "population_size": [
+      50,
+      100,
+      200,
+      300
+    ],
+    "mutation_probability": [
+      0.2,
+      0.5,
+      0.7,
+      1.0
+    ],
+    "mutation_percent": [
+      15,
+      30,
+      45,
+      60
+    ],
+    "elitist_percent": [
+      0.0,
+      0.1,
+      0.2,
+      0.3
+    ],
+    "plateau_limit": [
+      3,
+      5,
+      10,
+      20
+    ],
+    "plateau_diff": [
+      0.0,
+      1e-06,
+      0.0001,
+      0.001
+    ],
+    "max_iterations": [
+      50,
+      100,
+      200,
+      400
+    ]
+  },
+  "raw_trials": 2016,
+  "timing": "full run_ga call, including SciPy exact-reference calculation",
+  "fitness_plateau": "relative mean-fitness change",
+  "sampling": "same random matrices and GA seeds across parameter levels"
+}

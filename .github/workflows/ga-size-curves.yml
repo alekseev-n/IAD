@@ -1,0 +1,52 @@
+name: Dimension-curves GA study
+on:
+  push:
+    branches: ["feat/dimension-curves-20261021"]
+    paths:
+      - "lab1/size_curves.py"
+      - ".github/workflows/ga-size-curves.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 70
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python -m pip install -r requirements.txt
+      - run: python -m unittest discover -s tests -v
+      - name: Compute 22 dimension points per curve from real runs
+        run: python lab1/size_curves.py --output results/size_curves --matrix-count 3 --repeats 2
+      - name: Verify seven 22-point curves
+        run: |
+          python - <<'PY'
+          import csv
+          from pathlib import Path
+          with open("results/size_curves/summary.csv") as f:
+              data=list(csv.DictReader(f))
+          assert len(data)==7*4*22,len(data)
+          for p in ("population_size","mutation_probability","mutation_percent","elitist_percent","plateau_limit","plateau_diff","max_iterations"):
+              assert (Path("results/size_curves/plots")/(p+"_mean_gap.png")).is_file()
+          print("VERIFIED: 7 charts, 22 dimension samples, 4 parameter levels")
+          PY
+      - name: Execute linked notebook after plots exist
+        run: |
+          jupyter nbconvert --to notebook --execute lab1/testing.ipynb --output testing_executed.ipynb --ExecutePreprocessor.timeout=300
+          mv lab1/testing_executed.ipynb lab1/testing.ipynb
+      - uses: actions/upload-artifact@v4
+        with:
+          name: iad-ga-size-curves
+          path: |
+            results/size_curves/
+            lab1/testing.ipynb
+      - name: Commit all measured data, plots and notebook
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add results/size_curves/ lab1/testing.ipynb
+          git commit -m "results: 22-point dimension curves for all seven hyperparameters"
+          git push origin HEAD:feat/dimension-curves-20261021

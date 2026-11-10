@@ -2,12 +2,12 @@
 # В презентации код и его тестирование
 # прийти в 16.10
 
-import math
 import copy
-from GA_abstract import Vector, Population
-import random
 import math
-from itertools import combinations
+import random
+
+from GA_abstract import Population, Vector
+
 
 class Employee( Vector ):
 
@@ -19,25 +19,38 @@ class Employee( Vector ):
         self.mutation_percent = mutation_percent
 
     def mutate(self):
-        """Функция мутации. Вырезает кусок из вектора, переворачивает его и вставляет обратно."""
-        result = copy.deepcopy(self.vector)
-        replace = []
-        start = random.randint(1, self.length)
-        addition = 1 if self.length == 1 else 2
-        stop = start + int(self.length * random.randrange(0, self.mutation_percent) / 100)
-        stop = stop if stop - start > 1 else start + addition
-        for i in range(start, stop + 1):
-            replace.append(self.vector[i % self.length])
+        """Return a new chromosome with a randomly reversed contiguous segment.
 
-        for i in range(start, stop + 1):
-            result[i % self.length] = replace[stop - i]
+        mutation_percent is the maximum segment length as a percentage of the
+        chromosome length. A useful mutation needs at least two positions.
+        """
+        if not 0 < self.mutation_percent <= 100:
+            raise ValueError("mutation_percent must be in (0, 100]")
+        if self.length < 2:
+            return Employee(self.vector, self.length, self.matrix, self.mutation_percent)
 
+        max_segment = min(self.length, max(2, math.ceil(
+            self.length * self.mutation_percent / 100
+        )))
+        segment_length = random.randint(2, max_segment)
+        start = random.randint(0, self.length - segment_length)
+        result = self.vector.copy()
+        result[start:start + segment_length] = reversed(
+            result[start:start + segment_length]
+        )
         return Employee(result, self.length, self.matrix, self.mutation_percent)
 
     def fitness(self, vector): # pyright: ignore[reportIncompatibleMethodOverride]
-        f = 1 / sum(self.matrix[i][self.vector[i]] for i in range(self.length))
-        self.fit = f
-        return f
+        """Evaluate the chromosome passed in, not a stale instance vector.
+
+        Zero-cost assignments are valid; map them to large finite fitness
+        so RSS remains numerically defined. Costs below zero are unsupported
+        by this non-negative assignment-cost formulation.
+        """
+        cost = sum(self.matrix[i][vector[i]] for i in range(self.length))
+        if cost < 0:
+            raise ValueError("Assignment costs must sum to a non-negative value")
+        return 1.0 / max(float(cost), 1e-12)
 
 
     
@@ -54,15 +67,31 @@ class Employees( Population ):
     elitist_percent - процент особей, который сохраняется"""
 
     def __init__(self, n, mutation_probability, matrix, mutation_percent, elitist_percent, t=2):
+        # Invalid hyperparameters must never silently produce misleading
+        # experiments (e.g. probability 1.3 behaving exactly like 1.0).
+        if not isinstance(n, int) or n < 1:
+            raise ValueError("Population size must be a positive integer")
+        if not math.isfinite(mutation_probability) or not 0 <= mutation_probability <= 1:
+            raise ValueError("mutation_probability must be finite and within [0, 1]")
+        if not math.isfinite(mutation_percent) or not 0 < mutation_percent <= 100:
+            raise ValueError("mutation_percent must be finite and within (0, 100]")
+        if not math.isfinite(elitist_percent) or not 0 <= elitist_percent <= 1:
+            raise ValueError("elitist_percent must be finite and within [0, 1]")
+        try:
+            length = len(matrix)
+            square = length >= 1 and all(len(row) == length for row in matrix)
+        except (TypeError, ValueError):
+            square = False
+        if not square:
+            raise ValueError("Expected a non-empty square assignment-cost matrix")
         self.matrix = matrix
         self.population = []
         self.n = n
         self.mutation_probability = mutation_probability
-        self.form_first_population(mutation_percent)
         self.elitist_percent = elitist_percent
-        # self.matrix = matrix Поменял местами, так как суперкласс вызывает form_first_population, который вызывает self.matrix
-        self.t = t
+        self.t = t  # Legacy API: tournament selection is no longer used.
         self.mutation_percent = mutation_percent
+        self.form_first_population(mutation_percent)
         
 
     def form_first_population(self, mutation_percent):
@@ -78,46 +107,48 @@ class Employees( Population ):
             self.population.append(new_employee)
 
     def select(self):
-        """@brief: Турнирный отбор\n
-        @params: t - количество участников, из которых выбирается 1 лучший"""
+        """Elitism followed by remainder stochastic sampling (RSS).
 
-        # new_population = sorted(self.population, key=lambda v: v.fit, reverse=True)[:int(self.n * self.elitist_percent)]
-        # new_population_length = int(self.n * self.elitist_percent)
-        # while new_population_length < self.n:
-        #     to_choose = [random.choice(self.population) for _ in range(self.t)]
-        #     new = max(to_choose, key=lambda v: v.fit)
-        #     new_population.append(Employee(copy.deepcopy(new.vector), len(self.matrix), self.matrix, self.mutation_percent))
-        #     new_population_length += 1
+        Every selection produces exactly self.n chromosomes. Guaranteed
+        copies use the integer parts of expected counts; the remaining
+        positions are sampled from normalized fractional remainders.
+        """
+        if self.n < 1 or not self.population:
+            raise ValueError("Population must be non-empty and n >= 1")
+        if not 0 <= self.elitist_percent <= 1:
+            raise ValueError("elitist_percent must be in [0, 1]")
 
+        elite_count = int(self.n * self.elitist_percent)
+        ranked = sorted(self.population, key=lambda v: v.fit, reverse=True)
+        new_population = ranked[:elite_count]
+        remaining = self.n - elite_count
 
-        new_population = sorted(self.population, key=lambda v: v.fit, reverse=True)[:int(self.n * self.elitist_percent)]
-        new_population_length = int(self.n * self.elitist_percent)
-        
+        if remaining:
+            total_fitness = sum(v.fit for v in self.population)
+            if total_fitness <= 0 or any(v.fit < 0 for v in self.population):
+                raise ValueError("RSS requires positive total, non-negative fitness")
 
-        self.fitness()
-        self.population = sorted(self.population, key=lambda v: v.fit, reverse=True)
-        weights = []
-        for i in self.population:
-            weights.append(i.fit / self.fit)
+            expected = [remaining * v.fit / total_fitness for v in self.population]
+            for individual, copies in zip(self.population, expected):
+                for _ in range(math.floor(copies)):
+                    new_population.append(
+                        Employee(individual.vector, len(self.matrix),
+                                 self.matrix, self.mutation_percent)
+                    )
 
-        # print(weights)
+            missing = self.n - len(new_population)
+            if missing:
+                fractional = [x - math.floor(x) for x in expected]
+                # Rounding can theoretically exhaust fractions; use an
+                # unbiased uniform fallback for that degenerate case.
+                weights = fractional if sum(fractional) > 0 else None
+                for individual in random.choices(self.population, weights=weights, k=missing):
+                    new_population.append(
+                        Employee(individual.vector, len(self.matrix),
+                                 self.matrix, self.mutation_percent)
+                    )
 
-        count = 0
-        while new_population_length < self.n and count < len(weights):
-            for _ in range(int(weights[count])):
-                new_population.append(Employee(copy.deepcopy(self.population[count].vector),
-                                                len(self.matrix), self.matrix, self.mutation_percent))
-                new_population_length += 1
-
-            probability = weights[count] - int(weights[count])
-            if random.random() < probability:
-                new_population.append(Employee(copy.deepcopy(self.population[count].vector),
-                                                                len(self.matrix), self.matrix, self.mutation_percent))
-                new_population_length += 1
-            count += 1
-        
         self.population = new_population
-
 
     def mutate(self):
         """Функция вместо кроссовера"""
